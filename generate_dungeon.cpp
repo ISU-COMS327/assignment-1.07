@@ -10,6 +10,8 @@
 #include <ncurses.h>
 #include <netinet/in.h>
 #include <limits.h>
+#include <string>
+#include <iostream>
 
 #include "priority_queue.h"
 #include "monster_wrapper.h"
@@ -29,12 +31,13 @@
 #define MIN_ROOM_HEIGHT 5
 #define DEFAULT_MAX_ROOM_HEIGHT 10
 #define DEFAULT_NUMBER_OF_MONSTERS 5
+using namespace std;
 
-static char * TYPE_ROOM = "room";
-static char * TYPE_CORRIDOR = "corridor";
-static char * TYPE_ROCK = "rock";
-static char * TYPE_UPSTAIR = "upstair";
-static char * TYPE_DOWNSTAIR = "downstair";
+static string TYPE_ROOM = "room";
+static string TYPE_CORRIDOR = "corridor";
+static string TYPE_ROCK = "rock";
+static string TYPE_UPSTAIR = "upstair";
+static string TYPE_DOWNSTAIR = "downstair";
 
 struct Available_Coords {
     struct Coordinate * coords;
@@ -45,7 +48,7 @@ typedef struct {
     int tunneling_distance;
     int non_tunneling_distance;
     int hardness;
-    char * type;
+    string type;
     uint8_t x;
     uint8_t y;
     uint8_t has_player;
@@ -73,9 +76,9 @@ struct Coordinate ncurses_start_coord;
 struct Room * rooms;
 struct Monster ** monsters;
 struct Coordinate player;
-char * RLG_DIRECTORY;
 Queue * game_queue;
 
+string RLG_DIRECTORY = "";
 int IS_CONTROL_MODE = 1;
 int DO_QUIT = 0;
 int PLAYER_IS_ALIVE = 1;
@@ -117,12 +120,12 @@ void set_non_tunneling_distance_to_player();
 void generate_monsters();
 void print_non_tunneling_board();
 void print_tunneling_board();
-void add_message(char* message);
+void add_message(string message);
 void center_board_on_player();
 int handle_user_input(int key);
 void handle_user_input_for_look_mode(int key);
 void print_board();
-void print_cell();
+void print_cell(Board_Cell cell);
 void dig_rooms(int number_of_rooms_to_dig);
 void dig_room(int index, int recursive_iteration);
 int room_is_valid_at_index(int index);
@@ -286,7 +289,7 @@ void generate_new_board() {
         if (rooms) {
             free(rooms);
         }
-        rooms = malloc(sizeof(struct Room) * NUMBER_OF_ROOMS);
+        rooms = (struct Room *) malloc(sizeof(struct Room) * NUMBER_OF_ROOMS);
         dig_rooms(NUMBER_OF_ROOMS);
         dig_cooridors();
     }
@@ -302,7 +305,7 @@ void generate_new_board() {
 struct Coordinate get_random_unoccupied_location_in_room(struct Room room) {
     struct Available_Coords available_coords;
     available_coords.length = 0;
-    available_coords.coords = malloc(sizeof(struct Coordinate) * (room.end_y - room.start_y) * (room.end_x - room.start_x));
+    available_coords.coords = (struct Coordinate *)  malloc(sizeof(struct Coordinate) * (room.end_y - room.start_y) * (room.end_x - room.start_x));
     for (int y = room.start_y; y < room.end_y; y++) {
         for (int x = room.start_x; x < room.end_x; x++) {
             Board_Cell cell =  board[y][x];
@@ -336,28 +339,25 @@ void generate_stairs() {
 void make_rlg_directory() {
     char * home = getenv("HOME");
     char dir[] = "/.rlg327/";
-    RLG_DIRECTORY = malloc(strlen(home) + strlen(dir));
-    strcat(RLG_DIRECTORY, home);
-    strcat(RLG_DIRECTORY, dir);
-    mkdir(RLG_DIRECTORY, 0777);
+    RLG_DIRECTORY.append(home);
+    RLG_DIRECTORY.append(dir);
+    mkdir(RLG_DIRECTORY.c_str(), 0777);
 }
 
 void save_board() {
-    char filename[] = "dungeon";
-    char * filepath = malloc(strlen(filename) + strlen(RLG_DIRECTORY));
-    strcat(filepath, RLG_DIRECTORY);
-    strcat(filepath, filename);
-    printf("Saving file to: %s\n", filepath);
-    FILE * fp = fopen(filepath, "wb+");
+    string filename = "dungeon";
+    string filepath = RLG_DIRECTORY + filename;
+    cout << "Saving file to: " << filepath << endl;
+    FILE * fp = fopen(filepath.c_str(), "wb+");
     if (fp == NULL) {
-        printf("Cannot save file\n");
+        cout << "Cannot save file\n";
         return;
     }
-    char * file_marker = "RLG327-S2017";
+    string file_marker = "RLG327-S2017";
     uint32_t version = htonl(0);
     uint32_t file_size = htonl(16820 + (NUMBER_OF_ROOMS * 4));
 
-    fwrite(file_marker, 1, strlen(file_marker), fp);
+    fwrite(file_marker.c_str(), 1, file_marker.length(), fp);
     fwrite(&version, 1, 4, fp);
     fwrite(&file_size, 1, 4, fp);
     for (int y = 0; y < HEIGHT; y++) {
@@ -380,14 +380,12 @@ void save_board() {
 }
 
 void load_board() {
-    char filename[] = "dungeon";
-    char * filepath = malloc(strlen(filename) + strlen(RLG_DIRECTORY));
-    strcat(filepath, RLG_DIRECTORY);
-    strcat(filepath, filename);
-    printf("Loading dungeon: %s\n", filepath);
-    FILE *fp = fopen(filepath, "r");
+    string filename = "dungeon";
+    string filepath = RLG_DIRECTORY + filename;
+    cout << "Loading dungeon: " << filepath << endl;
+    FILE *fp = fopen(filepath.c_str(), "r");
     if (fp == NULL) {
-        printf("Cannot load '%s'\n", filepath);
+        cout << "Cannot load " << filepath << endl;
         exit(1);
     }
     char title[13]; // one extra index for the null value at the end
@@ -440,7 +438,7 @@ void load_board() {
     uint8_t width;
     uint8_t height;
     NUMBER_OF_ROOMS = (file_size - ftell(fp)) / 4;
-    rooms = malloc(sizeof(struct Room) * NUMBER_OF_ROOMS);
+    rooms = (struct Room *) malloc(sizeof(struct Room) * NUMBER_OF_ROOMS);
     int counter = 0;
     while(ftell(fp) != file_size) {
         fread(&start_x, 1, 1, fp);
@@ -583,8 +581,8 @@ Neighbors *get_tunneling_neighbors(struct Coordinate coord) {
     int can_go_up = coord.y > 0;
     int can_go_left = coord.x > 0;
     int can_go_down = coord.y < HEIGHT -1;
-    Neighbors *neighbors = malloc(sizeof(Neighbors));
-    neighbors->cells = malloc(sizeof(Board_Cell) * 8);
+    Neighbors *neighbors = (Neighbors * ) malloc(sizeof(Neighbors));
+    neighbors->cells = (Board_Cell *) malloc(sizeof(Board_Cell) * 8);
 
     if (can_go_right) {
         Board_Cell right = board[coord.y][coord.x + 1];
@@ -681,8 +679,8 @@ Neighbors *get_non_tunneling_neighbors(struct Coordinate coord) {
     int can_go_up = coord.y > 0;
     int can_go_left = coord.x > 0;
     int can_go_down = coord.y < HEIGHT -1;
-    Neighbors *neighbors = malloc(sizeof(Neighbors));
-    neighbors->cells = malloc(sizeof(Board_Cell) * 8);
+    Neighbors *neighbors = (Neighbors *) malloc(sizeof(Neighbors));
+    neighbors->cells = (Board_Cell *) malloc(sizeof(Board_Cell) * 8);
 
     if (can_go_right) {
         Board_Cell right = board[coord.y][coord.x + 1];
@@ -764,7 +762,7 @@ struct Coordinate get_random_board_location(int seed) {
 }
 
 void generate_monsters() {
-    monsters = malloc(sizeof(struct Monster *) * NUMBER_OF_MONSTERS);
+    monsters = (struct Monster **) malloc(sizeof(struct Monster *) * NUMBER_OF_MONSTERS);
     struct Coordinate last_known_player_location;
     last_known_player_location.x = 0;
     last_known_player_location.y = 0;
@@ -807,7 +805,7 @@ void print_non_tunneling_board() {
                printf("@");
            }
            else {
-               if (strcmp(cell.type, TYPE_ROCK) != 0) {
+               if (strcmp(cell.type.c_str(), TYPE_ROCK.c_str()) != 0) {
                    printf("%d", cell.non_tunneling_distance % 10);
                }
                else {
@@ -839,10 +837,10 @@ void print_tunneling_board() {
 
 }
 
-void add_message(char * message) {
+void add_message(string message) {
     move(0,0);
     clrtoeol();
-    mvprintw(0, 0, "%s", message);
+    mvprintw(0, 0, "%s", message.c_str());
     move(ncurses_player_coord.y, ncurses_player_coord.x);
     refresh();
 }
@@ -883,19 +881,19 @@ void update_board_view(int ncurses_start_x, int ncurses_start_y) {
             }
             else {
                 Board_Cell cell = player_board[y][x];
-                if (strcmp(cell.type, TYPE_UPSTAIR) == 0) {
+                if (strcmp(cell.type.c_str(), TYPE_UPSTAIR.c_str()) == 0) {
                     mvprintw(row, col, "<");
                 }
-                else if (strcmp(cell.type, TYPE_DOWNSTAIR) == 0) {
+                else if (strcmp(cell.type.c_str(), TYPE_DOWNSTAIR.c_str()) == 0) {
                     mvprintw(row, col, ">");
                 }
-                else if (strcmp(cell.type, TYPE_ROCK) == 0) {
+                else if (strcmp(cell.type.c_str(), TYPE_ROCK.c_str()) == 0) {
                     mvprintw(row, col, " ");
                 }
-                else if (strcmp(cell.type, TYPE_ROOM) == 0) {
+                else if (strcmp(cell.type.c_str(), TYPE_ROOM.c_str()) == 0) {
                     mvprintw(row, col, ".");
                 }
-                else if (strcmp(cell.type, TYPE_CORRIDOR) == 0) {
+                else if (strcmp(cell.type.c_str(), TYPE_CORRIDOR.c_str()) == 0) {
                     mvprintw(row, col, "#");
                 }
                 else {
@@ -940,7 +938,7 @@ int handle_user_input(int key) {
     struct Coordinate new_coord;
     new_coord.x = player.x;
     new_coord.y = player.y;
-    char * str = malloc(sizeof(char) * 100);
+    string str = "";
     if (key == 107 || key == 8) { // k - one cell up
         if (board[player.y - 1][player.x].hardness > 0) {
            return 0;
@@ -994,22 +992,20 @@ int handle_user_input(int key) {
         new_coord.y = player.y + 1;
     }
     else if (key == 60 && IS_CONTROL_MODE) {  // upstairs
-        if (strcmp(board[player.y][player.x].type, TYPE_UPSTAIR) != 0) {
+        if (strcmp(board[player.y][player.x].type.c_str(), TYPE_UPSTAIR.c_str()) != 0) {
            return 0;
         }
-        sprintf(str, "You travel upstairs");
-        add_message(str);
+        add_message("You travel upstairs");
         player.x = 0;
         player.y = 0;
         generate_new_board();
         return 1;
     }
     else if (key == 62) {  // downstairs
-        if (strcmp(board[player.y][player.x].type, TYPE_DOWNSTAIR) != 0) {
+        if (strcmp(board[player.y][player.x].type.c_str(), TYPE_DOWNSTAIR.c_str()) != 0) {
             return 0;
         }
-        sprintf(str, "You travel downstairs");
-        add_message(str);
+        add_message("You travel downstairs");
         player.y = 0;
         player.x = 0;
         generate_new_board();
@@ -1017,8 +1013,7 @@ int handle_user_input(int key) {
     }
     else if (key == 32 || key == 5) { // space - rest
         // you rest
-        sprintf(str, "You rest");
-        add_message(str);
+        add_message("You rest");
     }
     else if (key == 76 && IS_CONTROL_MODE) { // L - enter look mode
         add_message("Entering look mode");
@@ -1028,8 +1023,7 @@ int handle_user_input(int key) {
         DO_QUIT = 1;
     }
     else {
-        sprintf(str, "'%c' is not supported", key);
-        add_message(str);
+        add_message("'" + to_string(key) + "' is not supported");
         return 0;
     }
     if (new_coord.x != player.x || new_coord.y != player.y) {
@@ -1071,13 +1065,13 @@ void print_board() {
 }
 
 void print_cell(Board_Cell cell) {
-    if (strcmp(cell.type, TYPE_ROCK) == 0) {
+    if (strcmp(cell.type.c_str(), TYPE_ROCK.c_str()) == 0) {
         printf(" ");
     }
-    else if (strcmp(cell.type, TYPE_ROOM) == 0) {
+    else if (strcmp(cell.type.c_str(), TYPE_ROOM.c_str()) == 0) {
         printf(".");
     }
-    else if (strcmp(cell.type, TYPE_CORRIDOR) == 0) {
+    else if (strcmp(cell.type.c_str(), TYPE_CORRIDOR.c_str()) == 0) {
         printf("#");
     }
     else {
@@ -1201,7 +1195,7 @@ void connect_rooms_at_indexes(int index1, int index2) {
     while(1) {
         int random_num = random_int(0, RAND_MAX, cur_x + cur_y) >> 3;
         int move_y = random_num % 2 == 0;
-        if (strcmp(board[cur_y][cur_x].type,  TYPE_ROCK) != 0) {
+        if (strcmp(board[cur_y][cur_x].type.c_str(),  TYPE_ROCK.c_str()) != 0) {
             if (cur_y != end_y) {
                 cur_y += y_incrementer;
             }
@@ -1254,7 +1248,7 @@ struct Available_Coords get_non_tunneling_available_coords_for(struct Coordinate
     struct Coordinate new_coord;
     int size = 0;
     available_coords.length = 0;
-    available_coords.coords = malloc(sizeof(struct Coordinate) * 8);
+    available_coords.coords = (struct Coordinate *) malloc(sizeof(struct Coordinate) * 8);
     if (board[y - 1][x].hardness == 0) {
         new_coord.y = y - 1;
         new_coord.x = x;
@@ -1376,7 +1370,7 @@ void move_player() {
 }
 
 Board_Cell * get_surrounding_cells(struct Coordinate c) {
-    Board_Cell * cells = malloc(sizeof(Board_Cell) * 8);
+    Board_Cell * cells = (Board_Cell *) malloc(sizeof(Board_Cell) * 8);
     cells[0] = board[c.y + 1][c.x];
     cells[1] = board[c.y + 1][c.x - 1];
     cells[2] = board[c.y + 1][c.x + 1];
@@ -1499,11 +1493,10 @@ void kill_monster_at(int index) {
 
 void kill_player_or_monster_at(struct Coordinate coord) {
     int index = get_monster_index(coord);
-    char * str = malloc(sizeof(char) * 100);
+    string str = "";
     if (index >= 0) {
         int decimal_type = Monster_get_decimal_type(monsters[index]);
-        sprintf(str, "Monster with ability %d was killed!\n", decimal_type);
-        add_message(str);
+        add_message("Monster with ability " + to_string(decimal_type) + " was killed!");
         kill_monster_at(index);
     }
     if (player.x == coord.x && player.y == coord.y) {

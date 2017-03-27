@@ -19,9 +19,9 @@ typedef struct {
 } Queue;
 
 Queue *create_new_queue(int max_size) {
-   Queue *q = malloc(sizeof(Queue));
+   Queue *q = (Queue *) malloc(sizeof(Queue));
    q->length = 0;
-   q->nodes = malloc(sizeof(Node) * max_size);
+   q->nodes = (Node *) malloc(sizeof(Node) * max_size);
    return q;
 }
 
