@@ -12,9 +12,12 @@
 #include <limits.h>
 #include <string>
 #include <iostream>
+#include <fstream>
+#include <exception>
 
 #include "priority_queue.h"
 #include "monster_wrapper.h"
+#include "monster_description_parser.h"
 
 #define HEIGHT 105
 #define WIDTH 160
@@ -105,6 +108,7 @@ int min(int x, int y) {
 }
 void print_usage();
 void make_rlg_directory();
+void make_monster_templates();
 void update_number_of_rooms();
 void generate_new_board();
 void generate_stairs();
@@ -193,6 +197,8 @@ int main(int argc, char *args[]) {
         player_x = 0;
     }
     make_rlg_directory();
+    make_monster_templates();
+    exit(1);
     player.x = player_x;
     player.y = player_y;
     update_number_of_rooms();
@@ -266,6 +272,20 @@ int main(int argc, char *args[]) {
 
 
     return 0;
+}
+
+void make_monster_templates() {
+    printf("Making monster templates\n");
+    string filename = RLG_DIRECTORY + "monster_desc.txt";
+    MonsterDescriptionParser * p = new MonsterDescriptionParser(filename);
+    try {
+        p->parseFile();
+    }
+    catch(const char * e) {
+        cout << "Error reading monster file: " << e << "\nExiting program" <<endl;
+        exit(1);
+    }
+    p->printMonsters();
 }
 
 void update_number_of_rooms() {
