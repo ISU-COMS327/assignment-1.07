@@ -83,7 +83,7 @@ void MonsterDescriptionParser::parseFile() {
                 else if(starts_with(line, DESC_KEYWORD)) {
                     string description = "";
                     while (getline(file, line) && line.compare(".") != 0) {
-                        description += line;
+                        description += line.substr(0, 77) + "\n";
                     }
                     current_monster->setDescription(description);
                 }
@@ -114,11 +114,7 @@ void MonsterDescriptionParser::parseFile() {
                 }
                 else if (line.compare("END") == 0) {
                     if (current_monster->isValid()) {
-                        cout << "Monster is valid" << endl;
                         new_monsters.push_back(*current_monster);
-                    }
-                    else {
-                        cout << "Invalid monster" << endl;
                     }
                 }
 
