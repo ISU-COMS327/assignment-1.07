@@ -38,5 +38,6 @@ class MonsterTemplate {
         void setHitpoints(numeric_t);
         numeric_t getAttackDamage();
         void setAttackDamage(numeric_t);
+        string toString();
         MonsterTemplate();
 };

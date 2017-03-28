@@ -1,7 +1,23 @@
 #include <iostream>
+#include <sstream>
 #include "monster_template.h"
 
 using namespace std;
+
+string numeric_to_string(numeric_t numeric) {
+    return to_string(numeric.base) + "+" + to_string(numeric.dice) + "d" + to_string(numeric.sides);
+}
+
+string vector_to_string(vector<string> vec) {
+    stringstream ss;
+    for (size_t i = 0; i < vec.size(); i++) {
+        if (i != 0) {
+            ss << " ";
+        }
+        ss << vec[i];
+    }
+    return ss.str();
+}
 
 string MonsterTemplate::getName() {
     return name;
@@ -67,15 +83,6 @@ numeric_t MonsterTemplate::getAttackDamage() {
 void MonsterTemplate::setAttackDamage(numeric_t a) {
     attack_damage = a;
 }
-/*
-        string name;
-        string description;
-        string color;
-        numeric_t speed;
-        vector<string> abilities;
-        numeric_t hitpoints;
-        numeric_t attack_damage;
-*/
 
 bool MonsterTemplate::isValid() {
     return !name.empty() && !description.empty() && colors.size() > 0 && speed.base >= 0 && speed.dice >= 0\
@@ -83,6 +90,12 @@ bool MonsterTemplate::isValid() {
           && hitpoints.dice >= 0 && hitpoints.sides >= 0 &&\
           attack_damage.base >= 0 && attack_damage.sides >= 0 && attack_damage.dice >= 0 \
           && symbol;
+}
+
+string MonsterTemplate::toString() {
+    return name + "\n" + description + "\n" + symbol + "\n" + vector_to_string(colors)\
+           + "\n" + numeric_to_string(speed) + "\n" + numeric_to_string(hitpoints)\
+           + "\n" + numeric_to_string(attack_damage);
 }
 
 MonsterTemplate::MonsterTemplate() {

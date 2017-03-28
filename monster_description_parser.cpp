@@ -65,63 +65,79 @@ void MonsterDescriptionParser::parseFile() {
     if (line.compare("RLG327 MONSTER DESCRIPTION 1") != 0) {
         throw "Invalid first line of file";
     }
+    bool exception_raised = false;
     while (getline(file, line)) {
-        cout << line << endl;
         if (line.compare("BEGIN MONSTER") == 0) {
             current_monster = new MonsterTemplate();
+            exception_raised = false;
         }
-        else if (starts_with(line, NAME_KEYWORD)) {
-            line.erase(0, (NAME_KEYWORD + " ").length());
-            current_monster->setName(line);
+        else if (exception_raised) {
+            continue;
         }
-        else if(starts_with(line, DESC_KEYWORD)) {
-            string description = "";
-            while (getline(file, line) && line.compare(".") != 0) {
-                description += line;
+        else {
+            try{
+                if (starts_with(line, NAME_KEYWORD)) {
+                    line.erase(0, (NAME_KEYWORD + " ").length());
+                    current_monster->setName(line);
+                }
+                else if(starts_with(line, DESC_KEYWORD)) {
+                    string description = "";
+                    while (getline(file, line) && line.compare(".") != 0) {
+                        description += line;
+                    }
+                    current_monster->setDescription(description);
+                }
+                else if (starts_with(line, COLOR_KEYWORD)) {
+                    line.erase(0, (COLOR_KEYWORD + " ").length());
+                    current_monster->setColors(split(line, " "));
+                }
+                else if (starts_with(line, SPEED_KEYWORD)) {
+                    line.erase(0, (SPEED_KEYWORD + " ").length());
+                    numeric_t speed = parse_numeric(line);
+                    current_monster->setSpeed(speed);
+                }
+                else if(starts_with(line, ABILITIES_KEYWORD)) {
+                    line.erase(0, (COLOR_KEYWORD + " ").length());
+                    current_monster->setAbilities(split(line, " "));
+                }
+                else if (starts_with(line, HITPOINTS_KEYWORD)) {
+                    line.erase(0, (HITPOINTS_KEYWORD + " ").length());
+                    current_monster->setHitpoints(parse_numeric(line));
+                }
+                else if (starts_with(line, ATTACK_DAMAGE_KEYWORD)) {
+                    line.erase(0, (ATTACK_DAMAGE_KEYWORD + " ").length());
+                    current_monster->setAttackDamage(parse_numeric(line));
+                }
+                else if (starts_with(line, SYMBOL_KEYWORD)) {
+                    line.erase(0, (SYMBOL_KEYWORD + " ").length());
+                    current_monster->setSymbol(line[0]);
+                }
+                else if (line.compare("END") == 0) {
+                    if (current_monster->isValid()) {
+                        cout << "Monster is valid" << endl;
+                        new_monsters.push_back(*current_monster);
+                    }
+                    else {
+                        cout << "Invalid monster" << endl;
+                    }
+                }
+
             }
-            current_monster->setDescription(description);
-        }
-        else if (starts_with(line, COLOR_KEYWORD)) {
-            line.erase(0, (COLOR_KEYWORD + " ").length());
-            current_monster->setColors(split(line, " "));
-        }
-        else if (starts_with(line, SPEED_KEYWORD)) {
-            line.erase(0, (SPEED_KEYWORD + " ").length());
-            numeric_t speed = parse_numeric(line);
-            current_monster->setSpeed(speed);
-        }
-        else if(starts_with(line, ABILITIES_KEYWORD)) {
-            line.erase(0, (COLOR_KEYWORD + " ").length());
-            current_monster->setAbilities(split(line, " "));
-        }
-        else if (starts_with(line, HITPOINTS_KEYWORD)) {
-            line.erase(0, (COLOR_KEYWORD + " ").length());
-            current_monster->setHitpoints(parse_numeric(line));
-        }
-        else if (starts_with(line, ATTACK_DAMAGE_KEYWORD)) {
-            line.erase(0, (COLOR_KEYWORD + " ").length());
-            current_monster->setAttackDamage(parse_numeric(line));
-        }
-        else if (starts_with(line, SYMBOL_KEYWORD)) {
-            line.erase(0, (SYMBOL_KEYWORD + " ").length());
-            current_monster->setSymbol(line[0]);
-        }
-        else if (line.compare("END") == 0) {
-            if (current_monster->isValid()) {
-                cout << "Monster is valid" << endl;
-                new_monsters.push_back(*current_monster);
-            }
-            else {
-                cout << "Invalid monster" << endl;
+            catch(...) {
+                exception_raised = true;
             }
         }
     }
+    monster_templates = new_monsters;
     file.close();
 
 }
 
 void MonsterDescriptionParser::printMonsters() {
-    cout << "Printing monsters";
+    for (int i = 0; i < monster_templates.size(); i++) {
+        cout << monster_templates[i].toString() << endl;
+        cout << "\n";
+    }
 }
 
 vector<MonsterTemplate> MonsterDescriptionParser::getMonsterTemplates() {
