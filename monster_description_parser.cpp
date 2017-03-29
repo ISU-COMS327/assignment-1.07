@@ -83,8 +83,12 @@ void MonsterDescriptionParser::parseFile() {
                 else if(starts_with(line, DESC_KEYWORD)) {
                     string description = "";
                     while (getline(file, line) && line.compare(".") != 0) {
-                        description += line.substr(0, 77) + "\n";
+                        if (line.length() > 77) {
+                            throw "Description line too long";
+                        }
+                        description += line.substr(0, 76) + "\n";
                     }
+                    description.erase(description.end() - 1, description.end());
                     current_monster->setDescription(description);
                 }
                 else if (starts_with(line, COLOR_KEYWORD)) {
