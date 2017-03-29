@@ -1,0 +1,87 @@
+commit f6f73bb
+Author:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+AuthorDate: Mon Mar 27 15:49:31 2017 -0500
+Commit:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+CommitDate: Mon Mar 27 15:49:31 2017 -0500
+
+    init repo
+
+commit b3ef1f8
+Author:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+AuthorDate: Mon Mar 27 16:18:17 2017 -0500
+Commit:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+CommitDate: Mon Mar 27 16:18:17 2017 -0500
+
+    Convert project to C++
+
+commit f597ce9
+Author:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+AuthorDate: Tue Mar 28 09:14:24 2017 -0500
+Commit:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+CommitDate: Tue Mar 28 09:14:24 2017 -0500
+
+    Update project description
+
+commit 22791e4
+Author:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+AuthorDate: Tue Mar 28 11:28:29 2017 -0500
+Commit:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+CommitDate: Tue Mar 28 11:28:29 2017 -0500
+
+    Parsing file is mostly done
+
+commit 5a9daa7
+Author:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+AuthorDate: Tue Mar 28 11:28:52 2017 -0500
+Commit:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+CommitDate: Tue Mar 28 11:28:52 2017 -0500
+
+    Add gitignore file
+
+commit fb32eae
+Author:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+AuthorDate: Tue Mar 28 11:45:11 2017 -0500
+Commit:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+CommitDate: Tue Mar 28 11:45:11 2017 -0500
+
+    Correctly print out monsters
+
+commit 529e189
+Author:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+AuthorDate: Tue Mar 28 11:48:56 2017 -0500
+Commit:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+CommitDate: Tue Mar 28 11:48:56 2017 -0500
+
+    Limit width to 77 chars
+
+commit 4d5780e
+Author:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+AuthorDate: Tue Mar 28 11:52:16 2017 -0500
+Commit:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+CommitDate: Tue Mar 28 11:52:16 2017 -0500
+
+    Remove swp files
+
+commit a048bc9
+Author:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+AuthorDate: Tue Mar 28 11:52:44 2017 -0500
+Commit:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+CommitDate: Tue Mar 28 11:52:44 2017 -0500
+
+    Remove old project description
+
+commit 5d63b0c
+Author:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+AuthorDate: Tue Mar 28 11:57:42 2017 -0500
+Commit:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+CommitDate: Tue Mar 28 11:57:42 2017 -0500
+
+    Update README
+
+commit 0e58a2a (HEAD -> master, origin/master)
+Author:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+AuthorDate: Wed Mar 29 08:06:15 2017 -0500
+Commit:     Joseph McGovern <joseph.mcgovern@webfilings.com>
+CommitDate: Wed Mar 29 08:06:15 2017 -0500
+
+    Raise error if description is too long
